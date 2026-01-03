@@ -5,8 +5,22 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const route = require("./routes/userRoute");
 
+const https = require("https");
+const fs = require("fs");
+
+
 // ✅ LOAD ENV FIRST
 dotenv.config();
+
+const httpsOptions = {
+  key: fs.readFileSync("./certs/server.key"),
+  cert: fs.readFileSync("./certs/server.crt"),
+  ca: fs.readFileSync("./certs/ca.crt"),
+  requestCert: true,
+  rejectUnauthorized: true,
+};
+
+
 
 const app = express();
 
@@ -33,15 +47,19 @@ const MONGO_URL = process.env.MONGODB_URL || "mongodb://10.114.0.4:27017/zero_tr
 app.use("/api", route);
 
 // ✅ DB + Server
+// ✅ DB + HTTPS Server
 mongoose
   .connect(MONGO_URL)
   .then(() => {
     console.log("✅ DB connected successfully");
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+
+    https.createServer(httpsOptions, app).listen(PORT, "0.0.0.0", () => {
+      console.log("🔐 HTTPS App Server running");
     });
+
   })
   .catch((err) => {
     console.error("❌ MongoDB connection failed:", err.message);
     process.exit(1);
   });
+
