@@ -1,0 +1,16 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_server
+    ports:
+      - "5000:5000"
+    environment:
+      # ✅ Connects to DB Server via Private IP
+      - MONGODB_URL=mongodb://10.114.0.4:27017/zero_trust_project
+      - PORT=5000
+      - JWT_SECRET=maSuperCleSecreteTresLongueEtAleatoire
+    env_file:
+      - .env
+    restart: unless-stopped
